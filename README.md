@@ -1,1 +1,0 @@
-# shopfono-hub
