@@ -79,8 +79,8 @@ Responsabilidades:
 ## Vindi
 
 SOMENTE EM PEDIDOS PAGO NO CARTÃO DE CRÉDITO OU BOLETO
-Antes de efetuar qualquer requisição na API da Vindi para consultar as informações da transação, o sistema obrigatoriamente deve verificar se o Access Token expirou, se sim, renovar.
 Usar a API da Vindi para consultar informações da transação.
+Endpoint -> buscar transação por token_transaction (campo que vem da bagy)
 
 Salvar no pedido:
 
@@ -148,6 +148,7 @@ Campos principais:
 {
   pedido_bagy_id,
   numero_pedido_bagy,
+  token_transaction_vindi,
 
   forma_pagamento,
   nome_cliente,

@@ -56,12 +56,6 @@ Quando a forma de pagamento não for cartão ou boleto, o sistema não deve cons
 
 ---
 
-### RN-007 — Renovação do Token da Vindi
-
-Antes de qualquer consulta na API da Vindi, o sistema deve obrigatoriamente verificar validade do Access Token e gerar novo se necessário.
-
----
-
 ### RN-008 — Informação Obtida da Vindi
 
 Após a consulta da transação, o sistema deve armazenar:
@@ -158,6 +152,7 @@ Cada pedido deve permitir o armazenamento dos seguintes grupos de informações:
 
 #### Pagamento
 
+- token_transaction_vindi
 - forma_pagamento
 - valor_total
 - transaction_id
