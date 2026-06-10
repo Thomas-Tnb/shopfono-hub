@@ -315,3 +315,15 @@ Credenciais, tokens e demais informações sensíveis devem ser armazenadas atra
 ### RN-032 — Consumo da API
 
 O front-end React deve consumir exclusivamente a API Express.
+
+Novas regras de negócio :
+
+RN-033: Toda chamada para a API da Bling deve verificar previamente a validade do Access Token.
+
+RN-034 O Refresh Token mais recente deve sempre substituir o anterior.
+
+RN-035: A aplicação nunca deve depender de atualização manual dos tokens após a implantação.
+
+RN-036: Em caso de falha na renovação dos tokens, a requisição para a API da Bling deve ser interrompida e registrada em log.
+
+RN-037: Credenciais sensíveis (`CLIENT_ID` e `CLIENT_SECRET`) devem permanecer armazenadas apenas em variáveis de ambiente.

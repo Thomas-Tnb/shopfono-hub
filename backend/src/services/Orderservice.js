@@ -1,18 +1,15 @@
 import Order from "../models/Order.js";
 
-// Formas de pagamento que exigem consulta à Vindi (RF-026)
-const PAGAMENTOS_VINDI = ["credit_card", "debit_card", "boleto"];
+const PAGAMENTOS_VINDI = ["creditcard", "debitcard", "boleto"];
 
 // ── RF-002, RF-003, RF-004 ───────────────────────────────────────────────────
 export const criarPedido = async (payload) => {
   const { customer, address, payment, items } = payload;
 
   const pedido = new Order({
-    // Identificação
     pedido_bagy_id: String(payload.id),
     numero_pedido_bagy: String(payload.code),
 
-    // Cliente
     cliente: {
       nome: customer.name,
       email: customer.email,
@@ -29,7 +26,6 @@ export const criarPedido = async (payload) => {
       },
     },
 
-    // Itens
     itens: items.map((item) => ({
       produto_id: String(item.product_id),
       nome: item.name,
@@ -40,15 +36,11 @@ export const criarPedido = async (payload) => {
       sku: item.sku,
     })),
 
-    // Financeiro
     valor_total: parseFloat(payload.total),
     forma_pagamento: payment.method,
     token_transaction_vindi: String(payment.token),
 
-    // RF-003
     status_pedido: "PAGO",
-
-    // RF-004
     webhook_original: payload,
   });
 
@@ -58,20 +50,28 @@ export const criarPedido = async (payload) => {
 
 // ── RF-005 — orquestrador do processamento ───────────────────────────────────
 export const processarPedido = async (pedido) => {
+  console.log("Processando pedido...");
   try {
+    // Garante documento completo vindo do banco
+    const pedidoCompleto = await Order.findById(pedido._id).lean();
+
+    if (!pedidoCompleto) {
+      throw new Error(`Pedido ${pedido._id} não encontrado no banco.`);
+    }
+
     // RF-026/027 — consulta Vindi apenas para cartão e boleto
-    if (PAGAMENTOS_VINDI.includes(pedido.forma_pagamento)) {
+    if (PAGAMENTOS_VINDI.includes(pedidoCompleto.forma_pagamento)) {
       const { consultarTransacaoVindi } = await import("./vindiService.js");
       const transaction_id = await consultarTransacaoVindi(
-        pedido.token_transaction_vindi,
+        pedidoCompleto.token_transaction_vindi,
       );
 
-      await Order.findByIdAndUpdate(pedido._id, { transaction_id });
+      await Order.findByIdAndUpdate(pedidoCompleto._id, { transaction_id });
     }
 
     // RF-008 ao RF-012 — consulta Bling e atualiza pedido
-    const { sincronizarComBling } = await import("./blingService.js");
-    await sincronizarComBling(pedido);
+    // const { sincronizarComBling } = await import("./blingService.js");
+    // await sincronizarComBling(pedidoCompleto);
   } catch (error) {
     console.error(
       `Erro no processamento do pedido ${pedido._id}:`,

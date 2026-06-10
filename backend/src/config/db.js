@@ -2,7 +2,9 @@ import mongoose from "mongoose";
 
 const connectDB = async () => {
   try {
-    await mongoose.connect(process.env.MONGODB_URI);
+    await mongoose.connect(process.env.MONGODB_URI, {
+      dbName: "shopfono-db",
+    });
     console.log("MongoDB conectado.");
   } catch (error) {
     console.error("Erro ao conectar no MongoDB:", error.message);

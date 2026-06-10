@@ -24,7 +24,7 @@
 
 **RF-027** — Quando a forma de pagamento for diferente de cartão de crédito, cartão de débito ou boleto, o sistema não deve realizar consultas à API da Vindi e deve prosseguir com o processamento normal do pedido.
 
-## **RF-028** — A API deve usar o campo "payment.token" vindo da bagy para requisitar a transação na Vindi.
+**RF-028** — A API deve usar o campo "payment.token" vindo da bagy para requisitar a transação na Vindi.
 
 ## Integração com o Bling
 
