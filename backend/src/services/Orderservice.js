@@ -48,7 +48,7 @@ export const criarPedido = async (payload) => {
   return pedido;
 };
 
-// ── RF-005 — orquestrador do processamento ───────────────────────────────────
+// Orquestrador do processamento ───────────────────────────────────
 export const processarPedido = async (pedido) => {
   console.log("Processando pedido...");
   try {
@@ -69,9 +69,9 @@ export const processarPedido = async (pedido) => {
       await Order.findByIdAndUpdate(pedidoCompleto._id, { transaction_id });
     }
 
-    // RF-008 ao RF-012 — consulta Bling e atualiza pedido
-    // const { sincronizarComBling } = await import("./blingService.js");
-    // await sincronizarComBling(pedidoCompleto);
+    // Consulta Bling e atualiza pedido
+    const { sincronizarComBling } = await import("./blingService.js");
+    await sincronizarComBling(pedidoCompleto);
   } catch (error) {
     console.error(
       `Erro no processamento do pedido ${pedido._id}:`,
