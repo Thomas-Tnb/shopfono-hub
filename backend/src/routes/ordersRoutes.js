@@ -1,5 +1,9 @@
 import { Router } from "express";
-import { getOrders, getOrderById } from "../controllers/ordersController.js";
+import {
+  getOrders,
+  getOrderById,
+  reprocessOrder,
+} from "../controllers/ordersController.js";
 
 const router = Router();
 
@@ -8,5 +12,7 @@ router.get("/", getOrders);
 
 // RF-017 — detalhes de um pedido
 router.get("/:id", getOrderById);
+
+router.post("/:id/reprocess", reprocessOrder);
 
 export default router;

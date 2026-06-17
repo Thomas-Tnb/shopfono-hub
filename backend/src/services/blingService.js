@@ -1,6 +1,7 @@
 import axios from "axios";
 import Order from "../models/Order.js";
 import { getAccessToken } from "../utils/blingTokenManager.js";
+import { obterSituacaoBling } from "../utils/situacoes.js";
 
 const BLING_API = "https://api.bling.com.br";
 
@@ -36,10 +37,9 @@ const buscarPedidoNoBling = async (pedido_bagy_id) => {
         `Pedido com numerosLojas=${pedido_bagy_id} não encontrado no Bling.`,
       );
     }
-
     return {
       bling_pedido_id: String(pedidoBling.id),
-      status_pedido: String(pedidoBling.situacao.id),
+      situacao_id: pedidoBling.situacao.id,
     };
   } catch (err) {
     console.log(`Falha ao buscar pedido no Bling : ${err}`);
@@ -68,17 +68,15 @@ const buscarCodigoRastreio = async (bling_pedido_id) => {
 
 // ── Orquestrador principal — chamado pelo orderService ───────────────────────
 export const sincronizarComBling = async (pedido) => {
-  const { bling_pedido_id, status_pedido } = await buscarPedidoNoBling(
+  const { bling_pedido_id, situacao_id } = await buscarPedidoNoBling(
     pedido.pedido_bagy_id,
   );
-
-  // Segunda requisição usando o id obtido acima
   const codigo_rastreio = await buscarCodigoRastreio(bling_pedido_id);
 
   // Atualiza o pedido no banco
   await Order.findByIdAndUpdate(pedido._id, {
     bling_pedido_id,
-    status_pedido,
+    status_pedido_bling: obterSituacaoBling(Number(situacao_id)),
     codigo_rastreio,
     ultima_sincronizacao: new Date(),
   });
