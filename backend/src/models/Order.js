@@ -41,8 +41,8 @@ const OrderSchema = new mongoose.Schema(
   {
     // ── Identificação Bagy ───────────────────────────────────────────────────
     pedido_bagy_id: { type: String, required: true, unique: true },
-    numero_pedido_bagy: { type: String, required: true },
-    token_transaction_vindi: { type: String, required: true },
+    numero_pedido_bagy: { type: String, required: true, unique: true },
+    token_transaction_vindi: { type: String, default: null },
 
     // ── Cliente ──────────────────────────────────────────────────────────────
     nome_cliente: { type: String },
@@ -64,7 +64,8 @@ const OrderSchema = new mongoose.Schema(
     ultima_sincronizacao: { type: Date, default: null },
 
     // ── Status ───────────────────────────────────────────────────────────────
-    status_pedido: { type: String, required: true, default: "PAGO" },
+    status_pedido_bagy: { type: String, default: null },
+    status_pedido_bling: { type: String, default: null },
 
     // ── Payload original ─────────────────────────────────────────────────────
     webhook_original: { type: mongoose.Schema.Types.Mixed, required: true },
@@ -75,7 +76,8 @@ const OrderSchema = new mongoose.Schema(
   },
 );
 
-OrderSchema.index({ status_pedido: 1 });
+OrderSchema.index({ status_pedido_bagy: 1 });
+OrderSchema.index({ status_pedido_bling: 1 });
 OrderSchema.index({ updatedAt: -1 });
 OrderSchema.index({ bling_pedido_id: 1 });
 

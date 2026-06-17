@@ -1,77 +1,76 @@
 import Order from "../models/Order.js";
+import { obterStatusBagy } from "../utils/situacoes.js";
 
-const PAGAMENTOS_VINDI = ["creditcard", "debitcard", "boleto"];
+const PAGAMENTOS_VINDI = ["creditcard", "debitcard", "billet"];
 
 // ── RF-002, RF-003, RF-004 ───────────────────────────────────────────────────
 export const criarPedido = async (payload) => {
-  const { customer, address, payment, items } = payload;
+  const { customer, address, payment, items } = payload.data;
 
-  const pedido = new Order({
-    pedido_bagy_id: String(payload.id),
-    numero_pedido_bagy: String(payload.code),
-
-    cliente: {
-      nome: customer.name,
-      email: customer.email,
-      cpf_cnpj: customer.cgc,
-      telefone: customer.phone,
-      endereco: {
-        cep: address.zipcode,
-        rua: address.street,
-        numero: address.number,
-        complemento: address.detail,
-        bairro: address.district,
-        cidade: address.city,
-        estado: address.state,
+  return await Order.findOneAndUpdate(
+    // 1º argumento — apenas o filtro
+    {
+      pedido_bagy_id: String(payload.data.id || payload.id),
+    },
+    // 2º argumento — o que salvar/atualizar
+    {
+      $set: {
+        numero_pedido_bagy: payload.data.code,
+        nome_cliente: `${customer.first_name} ${customer.last_name}`,
+        cliente: {
+          nome: `${customer.first_name} ${customer.last_name}`,
+          email: customer.email,
+          cpf_cnpj: customer.doc,
+          telefone: customer.phone,
+          endereco: {
+            cep: address.zipcode,
+            rua: address.street,
+            numero: address.number,
+            complemento: address.detail,
+            bairro: address.district,
+            cidade: address.city,
+            estado: address.state,
+          },
+        },
+        itens: items.map((item) => ({
+          produto_id: String(item.product_id),
+          nome: item.name,
+          variacao: item.variation,
+          quantidade: item.quantity,
+          preco_unitario: item.price,
+          preco_total: item.total,
+        })),
+        valor_total: payload.data.total,
+        forma_pagamento: payment.method,
+        token_transaction_vindi: payment.token ?? null,
+        status_pedido_bagy: obterStatusBagy(payload.event),
+        webhook_original: payload,
       },
     },
-
-    itens: items.map((item) => ({
-      produto_id: String(item.product_id),
-      nome: item.name,
-      variacao: item.variation ?? null,
-      quantidade: item.quantity,
-      preco_unitario: parseFloat(item.price),
-      preco_total: parseFloat(item.total),
-      sku: item.sku,
-    })),
-
-    valor_total: parseFloat(payload.total),
-    forma_pagamento: payment.method,
-    token_transaction_vindi: String(payment.token),
-
-    status_pedido: "PAGO",
-    webhook_original: payload,
-  });
-
-  await pedido.save();
-  return pedido;
+    {
+      upsert: true,
+      new: true,
+    },
+  );
 };
 
-// ── RF-005 — orquestrador do processamento ───────────────────────────────────
+// Orquestrador do processamento ───────────────────────────────────
 export const processarPedido = async (pedido) => {
   console.log("Processando pedido...");
   try {
-    // Garante documento completo vindo do banco
     const pedidoCompleto = await Order.findById(pedido._id).lean();
 
     if (!pedidoCompleto) {
       throw new Error(`Pedido ${pedido._id} não encontrado no banco.`);
     }
 
-    // RF-026/027 — consulta Vindi apenas para cartão e boleto
     if (PAGAMENTOS_VINDI.includes(pedidoCompleto.forma_pagamento)) {
       const { consultarTransacaoVindi } = await import("./vindiService.js");
       const transaction_id = await consultarTransacaoVindi(
         pedidoCompleto.token_transaction_vindi,
       );
-
       await Order.findByIdAndUpdate(pedidoCompleto._id, { transaction_id });
     }
-
-    // RF-008 ao RF-012 — consulta Bling e atualiza pedido
-    // const { sincronizarComBling } = await import("./blingService.js");
-    // await sincronizarComBling(pedidoCompleto);
   } catch (error) {
     console.error(
       `Erro no processamento do pedido ${pedido._id}:`,
