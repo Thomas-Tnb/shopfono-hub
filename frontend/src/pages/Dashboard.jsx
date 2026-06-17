@@ -56,7 +56,7 @@ function Dashboard() {
                 </td>
                 <td className="px-4 py-3">
                   <span className="px-2 py-1 rounded text-xs font-medium bg-green-50 text-green-700">
-                    {pedido.status_pedido}
+                    {pedido.status_pedido_bagy}
                   </span>
                 </td>
                 <td className="px-4 py-3 text-gray-500">

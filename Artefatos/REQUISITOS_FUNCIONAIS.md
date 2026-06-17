@@ -28,21 +28,25 @@
 
 ## Integração com o Bling
 
-**RF-008** — O sistema deve consultar a API do Bling para buscar o ID do pedido (`bling_pedido_id`).
+**RF-008** — O sistema deve consultar a API do Bling para buscar o ID do pedido (id), e o status atual(situacao.id).
 
-**RF-009** — O sistema deve consultar o pedido no Bling para obter o status atual e o código de rastreio.
+**RF-009** - O campo `codigo_rastreio` pode ser preenchido a partir da segunda requisição no bling, pois depende do bling_pedido_id
 
-**RF-010** — Após a consulta ao Bling, o campo `status_pedido` deve ser atualizado com o status retornado pela Bling, substituindo o valor `PAGO`.
+**RF-010** - Para buscar o pedido no bling : `/Api/v3/pedidos/vendas?numerosLojas=pedido_bagy_id`
 
-**RF-011** — O campo `codigo_rastreio` deve ser atualizado com o valor retornado pela consulta ao Bling.
+**RF-011** — Após a consulta ao Bling, o campo `status_pedido` deve ser atualizado com o status retornado pela Bling, substituindo o valor `PAGO`.
 
-**RF-012** — O campo `ultima_sincronizacao` deve ser atualizado com a data e hora de cada sincronização realizada com o Bling.
+**RF-012** — O campo `codigo_rastreio` deve ser preenchido com o valor retornado pela consulta via `/Api/v3/pedidos/vendas/bling_pedido_id`
+
+**RF-030** - `codigo_rastreio` está em transporte.volumes.codigoRastreamento (mas volumes é um array e quero sempre o primeiro item o array)
+
+**RF-013** — O campo `ultima_sincronizacao` deve ser atualizado com a data e hora de cada sincronização realizada com o Bling.
 
 ---
 
 ## Autenticação com o Bling
 
-**RF-013** — Antes de toda requisição à API do Bling, o sistema deve verificar se o Access Token está expirado (validade de 12 horas).
+**RF-40** — Antes de toda requisição à API do Bling, o sistema deve verificar se o Access Token está expirado (validade de 12 horas).
 
 **RF-014** — Se o Access Token estiver expirado, o sistema deve renovar ambos os tokens (Access Token e Refresh Token) antes de prosseguir com a requisição.
 
@@ -77,3 +81,17 @@
 **RF-023** — Dashboard deve permitir filtrar apenas os pedidos de hoje via `updatedAt`
 
 **RF-024** — O React deve consumir dados exclusivamente pela API interna Express, sem consultar Bagy, Vindi ou Bling diretamente.
+
+---
+
+## Depara Situações Bling
+
+**RF-050** - A API interna express deve guardar o nome das situações do bling na collection situacoesBling no mongoDB
+
+**RF-51** - A API interna express deve disponibilizar uma rota para buscar situações do bling via `` 
+
+**RF-024** — O React deve consumir dados exclusivamente pela API interna Express, sem consultar Bagy, Vindi ou Bling diretamente.
+
+**RF-024** — O React deve consumir dados exclusivamente pela API interna Express, sem consultar Bagy, Vindi ou Bling diretamente.
+
+---
