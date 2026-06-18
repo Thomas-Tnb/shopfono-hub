@@ -1,5 +1,6 @@
 import Order from "../models/Order.js";
 import { obterStatusBagy } from "../utils/situacoes.js";
+import obterNaturezaDaOperacao from "../utils/naturezaDaOperacao.js";
 
 const PAGAMENTOS_VINDI = ["creditcard", "debitcard", "billet"];
 
@@ -21,6 +22,7 @@ export const criarPedido = async (payload) => {
           nome: `${customer.first_name} ${customer.last_name}`,
           email: customer.email,
           cpf_cnpj: customer.doc,
+          ie: customer.ie,
           telefone: customer.phone,
           endereco: {
             cep: address.zipcode,
@@ -40,6 +42,8 @@ export const criarPedido = async (payload) => {
           preco_unitario: item.price,
           preco_total: item.total,
         })),
+        natureza_operacao: obterNaturezaDaOperacao(address.state, customer.ie),
+        correio: payload.data.shipping.name,
         valor_total: payload.data.total,
         forma_pagamento: payment.method,
         token_transaction_vindi: payment.token ?? null,
