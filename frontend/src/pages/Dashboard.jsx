@@ -18,7 +18,9 @@ function Dashboard() {
             <tr className="border-b border-gray-200 text-left text-gray-500 font-medium">
               <th className="px-4 py-3">Número</th>
               <th className="px-4 py-3">Cliente</th>
+              <th className="px-4 py-3">Natureza Op.</th>
               <th className="px-4 py-3">Pagamento</th>
+              <th className="px-4 py-3">Correio</th>
               <th className="px-4 py-3">Valor</th>
               <th className="px-4 py-3">Status</th>
               <th className="px-4 py-3">Data</th>
@@ -36,6 +38,9 @@ function Dashboard() {
                 <td className="px-4 py-3 text-gray-800">
                   {pedido.cliente?.nome}
                 </td>
+                <td className="px-4 py-3 text-gray-800">
+                  {pedido.natureza_operacao}
+                </td>
                 <td className="px-4 py-3 text-gray-600">
                   {pedido.forma_pagamento === "pix" ? (
                     <span>PIX</span>
@@ -48,6 +53,7 @@ function Dashboard() {
                     </span>
                   )}
                 </td>
+                <td className="px-4 py-3 text-gray-800">{pedido.correio}</td>
                 <td className="px-4 py-3 text-gray-800">
                   {Number(pedido.valor_total).toLocaleString("pt-BR", {
                     style: "currency",

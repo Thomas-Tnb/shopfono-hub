@@ -19,6 +19,7 @@ const ClienteSchema = new mongoose.Schema(
     email: { type: String },
     cpf_cnpj: { type: String },
     telefone: { type: String },
+    ie: { type: String },
     endereco: { type: EnderecoSchema },
   },
   { _id: false },
@@ -62,6 +63,8 @@ const OrderSchema = new mongoose.Schema(
     bling_pedido_id: { type: String, default: null },
     codigo_rastreio: { type: String, default: null },
     ultima_sincronizacao: { type: Date, default: null },
+    natureza_operacao: { type: String, default: null },
+    correio: { type: String, default: null },
 
     // ── Status ───────────────────────────────────────────────────────────────
     status_pedido_bagy: { type: String, default: null },
