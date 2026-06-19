@@ -84,14 +84,18 @@
 
 ---
 
-## Depara Situações Bling
+## Natureza da Operação
 
-**RF-050** - A API interna express deve guardar o nome das situações do bling na collection situacoesBling no mongoDB
-
-**RF-51** - A API interna express deve disponibilizar uma rota para buscar situações do bling via `` 
-
-**RF-024** — O React deve consumir dados exclusivamente pela API interna Express, sem consultar Bagy, Vindi ou Bling diretamente.
-
-**RF-024** — O React deve consumir dados exclusivamente pela API interna Express, sem consultar Bagy, Vindi ou Bling diretamente.
+**RF-050** - A API interna express deve deduzir a natureza da operacao com base nos campos vindos da bagy
+**RF-051** - As opcoes de natureza da operacao são `Venda Mercadoria - PR`, `Venda Interestadual C/IE`, `Venda Interestadual S/IE`
+**RF-052** - As regras para natureza da operacao são :
+if(adress.state!="PR"){
+if(cnpj && inscricaoEstadual){
+"Interestadual C/IE"
+}else{
+"Interestadual S/IE"
+}}else{
+"Venda Mercadoria - PR"
+}
 
 ---

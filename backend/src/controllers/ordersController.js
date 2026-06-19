@@ -28,7 +28,7 @@ export const getOrders = async (req, res) => {
     // webhook_original e itens completos ficam de fora para aliviar o payload
     const pedidos = await Order.find(filtro)
       .select(
-        "pedido_bagy_id numero_pedido_bagy cliente.nome forma_pagamento transaction_id valor_total status_pedido_bagy status_pedido_bling createdAt updatedAt",
+        "pedido_bagy_id numero_pedido_bagy cliente.nome forma_pagamento transaction_id natureza_operacao correio valor_total status_pedido_bagy status_pedido_bling createdAt updatedAt",
       )
       .sort({ createdAt: -1 });
 
