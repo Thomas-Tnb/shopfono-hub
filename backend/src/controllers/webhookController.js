@@ -5,7 +5,7 @@ import { processarPedido } from "../services/orderService.js";
 export const receberPedidoBagy = async (req, res) => {
   try {
     const payload = req.body;
-
+    console.log(`Pedido ${payload.id} recebido!`);
     // RF-002, RF-003, RF-004 — salva imediatamente
     const pedido = await criarPedido(payload);
 

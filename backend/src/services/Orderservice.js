@@ -6,56 +6,68 @@ const PAGAMENTOS_VINDI = ["creditcard", "debitcard", "billet"];
 
 // ── RF-002, RF-003, RF-004 ───────────────────────────────────────────────────
 export const criarPedido = async (payload) => {
-  const { customer, address, payment, items } = payload.data;
+  try {
+    const { customer, address, payment, items } = payload.data;
 
-  return await Order.findOneAndUpdate(
-    // 1º argumento — apenas o filtro
-    {
-      pedido_bagy_id: String(payload.data.id || payload.id),
-    },
-    // 2º argumento — o que salvar/atualizar
-    {
-      $set: {
-        numero_pedido_bagy: payload.data.code,
-        nome_cliente: `${customer.first_name} ${customer.last_name}`,
-        cliente: {
-          nome: `${customer.first_name} ${customer.last_name}`,
-          email: customer.email,
-          cpf_cnpj: customer.doc,
-          ie: customer.ie,
-          telefone: customer.phone,
-          endereco: {
-            cep: address.zipcode,
-            rua: address.street,
-            numero: address.number,
-            complemento: address.detail,
-            bairro: address.district,
-            cidade: address.city,
-            estado: address.state,
-          },
-        },
-        itens: items.map((item) => ({
-          produto_id: String(item.product_id),
-          nome: item.name,
-          variacao: item.variation,
-          quantidade: item.quantity,
-          preco_unitario: item.price,
-          preco_total: item.total,
-        })),
-        natureza_operacao: obterNaturezaDaOperacao(address.state, customer.ie),
-        correio: payload.data.shipping.name,
-        valor_total: payload.data.total,
-        forma_pagamento: payment.method,
-        token_transaction_vindi: payment.token ?? null,
-        status_pedido_bagy: obterStatusBagy(payload.event),
-        webhook_original: payload,
+    const pedido = await Order.findOneAndUpdate(
+      {
+        pedido_bagy_id: String(payload.data.id || payload.id),
       },
-    },
-    {
-      upsert: true,
-      new: true,
-    },
-  );
+      {
+        $set: {
+          numero_pedido_bagy: payload.data.code,
+          nome_cliente: `${customer.first_name} ${customer.last_name}`,
+          cliente: {
+            nome: `${customer.first_name} ${customer.last_name}`,
+            email: customer.email,
+            cpf_cnpj: customer.doc,
+            ie: customer.ie,
+            telefone: customer.phone,
+            endereco: {
+              cep: address.zipcode,
+              rua: address.street,
+              numero: address.number,
+              complemento: address.detail,
+              bairro: address.district,
+              cidade: address.city,
+              estado: address.state,
+            },
+          },
+          itens: items.map((item) => ({
+            produto_id: String(item.product_id),
+            nome: item.name,
+            variacao: item.variation,
+            quantidade: item.quantity,
+            preco_unitario: item.price,
+            preco_total: item.total,
+          })),
+          natureza_operacao: obterNaturezaDaOperacao(
+            address.state,
+            customer.ie,
+          ),
+          correio: payload.data.shipping.name,
+          valor_total: payload.data.total,
+          forma_pagamento: payment.method,
+          token_transaction_vindi: payment.token ?? null,
+          status_pedido_bagy: obterStatusBagy(payload.event),
+          webhook_original: payload,
+        },
+      },
+      {
+        upsert: true,
+        new: true,
+      },
+    );
+
+    return pedido;
+  } catch (error) {
+    console.error(
+      `Erro ao criar/atualizar pedido ${payload?.data?.id}:`,
+      error,
+    );
+
+    throw error;
+  }
 };
 
 // Orquestrador do processamento ───────────────────────────────────
