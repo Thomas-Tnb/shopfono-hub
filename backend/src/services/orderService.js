@@ -82,11 +82,21 @@ export const processarPedido = async (pedido) => {
 
     if (PAGAMENTOS_VINDI.includes(pedidoCompleto.forma_pagamento)) {
       const { consultarTransacaoVindi } = await import("./vindiService.js");
-      const transaction_id = await consultarTransacaoVindi(
-        pedidoCompleto.token_transaction_vindi,
-      );
-      await Order.findByIdAndUpdate(pedidoCompleto._id, { transaction_id });
+      try {
+        const transaction_id = await consultarTransacaoVindi(
+          pedidoCompleto.token_transaction_vindi,
+        );
+        await Order.findByIdAndUpdate(pedidoCompleto._id, { transaction_id });
+      } catch (error) {
+        console.error(
+          `Falha ao consultar Vindi para o pedido ${pedido._id}:`,
+          error.message,
+        );
+      }
     }
+
+    const { sincronizarComBling } = await import("./blingService.js");
+    await sincronizarComBling(pedidoCompleto, { gerarNotaFiscal: true });
   } catch (error) {
     console.error(
       `Erro no processamento do pedido ${pedido._id}:`,
