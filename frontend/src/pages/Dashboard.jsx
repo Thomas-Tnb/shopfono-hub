@@ -1,16 +1,61 @@
 import { useEffect, useState } from "react";
-import buscarPedidos from "./../services/ordersService";
+import buscarPedidos, { sincronizarTodos } from "./../services/ordersService";
+
+const mapaPagamentos = {
+  billet: "Boleto",
+  creditcard: "Cartão de Crédito",
+};
 
 function Dashboard() {
   const [pedidos, setPedidos] = useState([]);
+  const [sincronizando, setSincronizando] = useState(false);
+  const [resultado, setResultado] = useState(null); // { sucesso, erro }
 
   useEffect(() => {
     buscarPedidos(setPedidos);
   }, []);
 
+  const handleSincronizarTodos = async () => {
+    setSincronizando(true);
+    setResultado(null);
+
+    try {
+      const res = await sincronizarTodos(pedidos);
+      setResultado(res);
+    } finally {
+      setSincronizando(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 p-8">
-      <h1 className="text-xl font-semibold text-gray-800 mb-6">Pedidos</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-xl font-semibold text-gray-800">Pedidos</h1>
+
+        <div className="flex items-center gap-3">
+          {resultado && (
+            <span className="text-sm text-gray-500">
+              <span className="text-green-600 font-medium">
+                {resultado.sucesso} sincronizados
+              </span>
+              {resultado.erro > 0 && (
+                <span className="text-red-500 font-medium">
+                  {" "}
+                  · {resultado.erro} com erro
+                </span>
+              )}
+            </span>
+          )}
+
+          <button
+            onClick={handleSincronizarTodos}
+            disabled={sincronizando || pedidos.length === 0}
+            className="px-4 py-2 rounded-lg text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            {sincronizando ? "Sincronizando..." : "Sincronizar com Bling"}
+          </button>
+        </div>
+      </div>
 
       <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
         <table className="w-full text-sm">
@@ -46,7 +91,7 @@ function Dashboard() {
                     <span>PIX</span>
                   ) : (
                     <span>
-                      {pedido.forma_pagamento} ·{" "}
+                      {mapaPagamentos[pedido.forma_pagamento]} ·{" "}
                       <span className="text-gray-400">
                         {pedido.transaction_id}
                       </span>
