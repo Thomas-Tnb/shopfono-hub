@@ -1,5 +1,5 @@
-import { getServicoTransporte } from "../utils/servicoTransporte";
-import { getFormaPagamentoId } from "../utils/formasPagamento";
+import { getServicoTransporte } from "../utils/servicoTransporte.js";
+import { getFormaPagamentoId } from "../utils/formasPagamento.js";
 
 export const montarPayloadAtualizacaoPedidoBling = (
   pedidoMongo,
