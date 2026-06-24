@@ -8,10 +8,15 @@ const PAGAMENTOS_VINDI = ["creditcard", "debitcard", "billet"];
 export const criarPedido = async (payload) => {
   try {
     const { customer, address, payment, items } = payload.data;
+    const pedidoBagyId = String(payload.data.id || payload.id);
+
+    console.log(
+      `[orderService.criarPedido] Salvando pedido Bagy ${pedidoBagyId} no Mongo...`,
+    );
 
     const pedido = await Order.findOneAndUpdate(
       {
-        pedido_bagy_id: String(payload.data.id || payload.id),
+        pedido_bagy_id: pedidoBagyId,
       },
       {
         $set: {
@@ -55,8 +60,12 @@ export const criarPedido = async (payload) => {
       },
       {
         upsert: true,
-        new: true,
+        returnDocument: "after",
       },
+    );
+
+    console.log(
+      `[orderService.criarPedido] Pedido Bagy ${pedidoBagyId} salvo com sucesso no Mongo (${pedido._id}).`,
     );
 
     return pedido;
@@ -72,31 +81,69 @@ export const criarPedido = async (payload) => {
 
 // Orquestrador do processamento ───────────────────────────────────
 export const processarPedido = async (pedido) => {
-  console.log("Processando pedido...");
+  console.log(
+    `[orderService.processarPedido] Iniciando processamento do pedido ${pedido?._id ?? "desconhecido"}...`,
+  );
   try {
+    console.log(
+      `[orderService.processarPedido] Buscando pedido ${pedido._id} completo no Mongo...`,
+    );
     const pedidoCompleto = await Order.findById(pedido._id).lean();
 
     if (!pedidoCompleto) {
       throw new Error(`Pedido ${pedido._id} não encontrado no banco.`);
     }
 
+    console.log(
+      `[orderService.processarPedido] Pedido ${pedido._id} carregado. Forma de pagamento: ${pedidoCompleto.forma_pagamento}.`,
+    );
+
     if (PAGAMENTOS_VINDI.includes(pedidoCompleto.forma_pagamento)) {
-      const { consultarTransacaoVindi } = await import("./vindiService.js");
       try {
+        console.log(
+          `[orderService.processarPedido] Consultando Vindi para o pedido ${pedido._id}...`,
+        );
+        const { consultarTransacaoVindi } = await import("./vindiService.js");
         const transaction_id = await consultarTransacaoVindi(
           pedidoCompleto.token_transaction_vindi,
         );
+
         await Order.findByIdAndUpdate(pedidoCompleto._id, { transaction_id });
+        console.log(
+          `[orderService.processarPedido] Vindi concluída para o pedido ${pedido._id}. transaction_id=${transaction_id}.`,
+        );
       } catch (error) {
         console.error(
           `Falha ao consultar Vindi para o pedido ${pedido._id}:`,
           error.message,
         );
       }
+    } else {
+      console.log(
+        `[orderService.processarPedido] Pedido ${pedido._id} não exige consulta à Vindi.`,
+      );
     }
 
-    const { sincronizarComBling } = await import("./blingService.js");
-    await sincronizarComBling(pedidoCompleto, { gerarNotaFiscal: false });
+    try {
+      console.log(
+        `[orderService.processarPedido] Iniciando sincronização com Bling para o pedido ${pedido._id}...`,
+      );
+      const { sincronizarComBling } = await import("./blingService.js");
+      await sincronizarComBling(pedidoCompleto, { gerarNotaFiscal: false });
+      console.log(
+        `[orderService.processarPedido] Sincronização com Bling concluída para o pedido ${pedido._id}.`,
+      );
+    } catch (error) {
+      console.error(
+        `[orderService.processarPedido] Falha ao sincronizar pedido ${pedido._id} com a Bling:`,
+        error.message,
+      );
+      throw error;
+    }
+
+    console.log(
+      `[orderService.processarPedido] Processamento finalizado para o pedido ${pedido._id}.`,
+    );
   } catch (error) {
     console.error(
       `Erro no processamento do pedido ${pedido._id}:`,
