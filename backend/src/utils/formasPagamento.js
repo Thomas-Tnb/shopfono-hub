@@ -25,10 +25,12 @@ export const getFormaPagamentoId = (formaPagamento, parcelas = []) => {
         case 4:
           return 3129236;
         default:
-          return "Quantidade de parcelas não encontrada.";
+          throw new Error(
+            `Quantidade de parcelas nao encontrada para creditcard: ${qtdParcelas}`,
+          );
       }
 
     default:
-      return "Forma de pagamento não encontrada.";
+      throw new Error(`Forma de pagamento nao encontrada: ${formaPagamento}`);
   }
 };

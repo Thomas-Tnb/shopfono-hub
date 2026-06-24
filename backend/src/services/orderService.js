@@ -96,7 +96,7 @@ export const processarPedido = async (pedido) => {
     }
 
     const { sincronizarComBling } = await import("./blingService.js");
-    await sincronizarComBling(pedidoCompleto, { gerarNotaFiscal: true });
+    await sincronizarComBling(pedidoCompleto, { gerarNotaFiscal: false });
   } catch (error) {
     console.error(
       `Erro no processamento do pedido ${pedido._id}:`,
