@@ -1,10 +1,10 @@
 import Order from "../models/Order.js";
 import { obterStatusBagy } from "../utils/situacoes.js";
-import obterNaturezaDaOperacao from "../utils/naturezaDaOperacao.js";
+import getIdNaturezaOperacao from "../utils/naturezaDaOperacao.js";
 
 const PAGAMENTOS_VINDI = ["creditcard", "debitcard", "billet"];
 
-// ── RF-002, RF-003, RF-004 ───────────────────────────────────────────────────
+// Salvando webhook Bagy no mongoDB
 export const criarPedido = async (payload) => {
   try {
     const { customer, address, payment, items } = payload.data;
@@ -41,7 +41,7 @@ export const criarPedido = async (payload) => {
             preco_unitario: item.price,
             preco_total: item.total,
           })),
-          natureza_operacao: obterNaturezaDaOperacao(
+          id_natureza_operacao: getIdNaturezaOperacao(
             address.state,
             customer.ie,
           ),
@@ -82,11 +82,21 @@ export const processarPedido = async (pedido) => {
 
     if (PAGAMENTOS_VINDI.includes(pedidoCompleto.forma_pagamento)) {
       const { consultarTransacaoVindi } = await import("./vindiService.js");
-      const transaction_id = await consultarTransacaoVindi(
-        pedidoCompleto.token_transaction_vindi,
-      );
-      await Order.findByIdAndUpdate(pedidoCompleto._id, { transaction_id });
+      try {
+        const transaction_id = await consultarTransacaoVindi(
+          pedidoCompleto.token_transaction_vindi,
+        );
+        await Order.findByIdAndUpdate(pedidoCompleto._id, { transaction_id });
+      } catch (error) {
+        console.error(
+          `Falha ao consultar Vindi para o pedido ${pedido._id}:`,
+          error.message,
+        );
+      }
     }
+
+    const { sincronizarComBling } = await import("./blingService.js");
+    await sincronizarComBling(pedidoCompleto, { gerarNotaFiscal: false });
   } catch (error) {
     console.error(
       `Erro no processamento do pedido ${pedido._id}:`,

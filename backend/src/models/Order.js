@@ -40,37 +40,41 @@ const ItemSchema = new mongoose.Schema(
 
 const OrderSchema = new mongoose.Schema(
   {
-    // ── Identificação Bagy ───────────────────────────────────────────────────
+    // Identificacao Bagy
     pedido_bagy_id: { type: String, required: true, unique: true },
     numero_pedido_bagy: { type: String, required: true, unique: true },
     token_transaction_vindi: { type: String, default: null },
 
-    // ── Cliente ──────────────────────────────────────────────────────────────
+    // Cliente
     nome_cliente: { type: String },
     cliente: { type: ClienteSchema },
 
-    // ── Itens ────────────────────────────────────────────────────────────────
+    // Itens
     itens: { type: [ItemSchema], default: [] },
 
-    // ── Financeiro ───────────────────────────────────────────────────────────
+    // Financeiro
     valor_total: { type: Number, required: true },
     forma_pagamento: { type: String, required: true },
 
-    // ── Vindi ────────────────────────────────────────────────────────────────
+    // Vindi
     transaction_id: { type: String, default: null },
 
-    // ── Bling ────────────────────────────────────────────────────────────────
+    // Bling
     bling_pedido_id: { type: String, default: null },
+    bling_nota_fiscal_id: { type: String, default: null },
     codigo_rastreio: { type: String, default: null },
     ultima_sincronizacao: { type: Date, default: null },
-    natureza_operacao: { type: String, default: null },
+    status_nota_fiscal: { type: String, default: null },
+    ultima_emissao_nota: { type: Date, default: null },
+    erro_nota_fiscal: { type: String, default: null },
+    id_natureza_operacao: { type: Number, default: null },
     correio: { type: String, default: null },
 
-    // ── Status ───────────────────────────────────────────────────────────────
+    // Status
     status_pedido_bagy: { type: String, default: null },
     status_pedido_bling: { type: String, default: null },
 
-    // ── Payload original ─────────────────────────────────────────────────────
+    // Payload original
     webhook_original: { type: mongoose.Schema.Types.Mixed, required: true },
   },
   {
@@ -83,6 +87,7 @@ OrderSchema.index({ status_pedido_bagy: 1 });
 OrderSchema.index({ status_pedido_bling: 1 });
 OrderSchema.index({ updatedAt: -1 });
 OrderSchema.index({ bling_pedido_id: 1 });
+OrderSchema.index({ bling_nota_fiscal_id: 1 });
 
 const Order = mongoose.model("Order", OrderSchema);
 
