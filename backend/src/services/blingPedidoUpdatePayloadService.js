@@ -26,10 +26,7 @@ export const montarPayloadAtualizacaoPedidoBling = (
       pedidoMongo?.forma_pagamento,
       payload.parcelas ?? [],
     );
-    const servicoTransporte = getServicoTransporte(
-      pedidoMongo?.correio,
-      payload.parcelas,
-    );
+    const servicoTransporte = getServicoTransporte(pedidoMongo?.correio);
     const observacoes = String(
       pedidoMongo?.transaction_id ?? "Transferencia Bancaria",
     ).trim();
@@ -86,13 +83,20 @@ export const montarPayloadAtualizacaoPedidoBling = (
       ];
     }
 
-    if (Array.isArray(payload.volumes)) {
-      payload.volumes = payload.volumes.map((volume) => ({
+    if (!payload.transporte) {
+      payload.transporte = {};
+    }
+
+    if (
+      Array.isArray(payload.transporte.volumes) &&
+      payload.transporte.volumes.length > 0
+    ) {
+      payload.transporte.volumes = payload.transporte.volumes.map((volume) => ({
         ...volume,
         servico: servicoTransporte,
       }));
     } else {
-      payload.volumes = [
+      payload.transporte.volumes = [
         {
           servico: servicoTransporte,
         },
@@ -100,7 +104,7 @@ export const montarPayloadAtualizacaoPedidoBling = (
     }
 
     console.log(
-      `[blingPedidoUpdatePayloadService] Payload do pedido ${pedidoId} montado com sucesso. itens=${payload.itens?.length ?? 0}, parcelas=${payload.parcelas?.length ?? 0}, volumes=${payload.volumes?.length ?? 0}.`,
+      `[blingPedidoUpdatePayloadService] Payload do pedido ${pedidoId} montado com sucesso. itens=${payload.itens?.length ?? 0}, parcelas=${payload.parcelas?.length ?? 0}, volumes=${payload.transporte?.volumes?.length ?? 0}.`,
     );
 
     return payload;

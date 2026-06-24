@@ -1,5 +1,22 @@
 import Order from "../models/Order.js";
 import { sincronizarComBling } from "../services/blingService.js";
+import axios from "axios";
+import { getAccessToken } from "../utils/blingTokenManager.js";
+import { montarPayloadAtualizacaoPedidoBling } from "../services/blingPedidoUpdatePayloadService.js";
+
+const BLING_API = "https://api.bling.com.br";
+
+const criarClientBling = async () => {
+  const token = await getAccessToken();
+
+  return axios.create({
+    baseURL: BLING_API,
+    headers: {
+      Authorization: `Bearer ${token}`,
+      Accept: "application/json",
+    },
+  });
+};
 
 // GET /api/orders
 // Query params opcionais:
@@ -84,5 +101,89 @@ export const reprocessOrder = async (req, res) => {
     return res
       .status(500)
       .json({ success: false, message: "Erro ao sincronizar pedido." });
+  }
+};
+
+// POST /api/orders/:id/test-put-bling
+export const testPutBlingOrder = async (req, res) => {
+  try {
+    const pedido = await Order.findById(req.params.id).lean();
+
+    if (!pedido) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Pedido nao encontrado." });
+    }
+
+    if (!pedido.bling_pedido_id) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Pedido ainda nao possui bling_pedido_id. Sincronize com a Bling primeiro.",
+      });
+    }
+
+    console.log(
+      `[testPutBlingOrder] Iniciando teste de PUT para o pedido ${pedido._id}. bling_pedido_id=${pedido.bling_pedido_id}.`,
+    );
+
+    const client = await criarClientBling();
+
+    const { data: pedidoAtualData } = await client.get(
+      `/Api/v3/pedidos/vendas/${pedido.bling_pedido_id}`,
+    );
+
+    const pedidoBlingAtual = pedidoAtualData?.data;
+
+    if (!pedidoBlingAtual) {
+      return res.status(404).json({
+        success: false,
+        message: "Pedido nao encontrado na Bling para teste de PUT.",
+      });
+    }
+
+    const payload = montarPayloadAtualizacaoPedidoBling(
+      pedido,
+      pedidoBlingAtual,
+    );
+
+    console.log(
+      `[testPutBlingOrder] Enviando PUT para o pedido ${pedido.bling_pedido_id} na Bling...`,
+    );
+    await client.put(`/Api/v3/pedidos/vendas/${pedido.bling_pedido_id}`, payload);
+
+    const { data: pedidoAtualizadoData } = await client.get(
+      `/Api/v3/pedidos/vendas/${pedido.bling_pedido_id}`,
+    );
+
+    const pedidoBlingAtualizado = pedidoAtualizadoData?.data ?? null;
+
+    console.log(
+      `[testPutBlingOrder] PUT concluido para o pedido ${pedido.bling_pedido_id}.`,
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Teste de PUT executado com sucesso.",
+      data: {
+        pedido_id: pedido._id,
+        bling_pedido_id: pedido.bling_pedido_id,
+        payload_enviado: payload,
+        pedido_bling_antes: pedidoBlingAtual,
+        pedido_bling_depois: pedidoBlingAtualizado,
+      },
+    });
+  } catch (error) {
+    console.error("[testPutBlingOrder] Erro:", error.message);
+    console.error(
+      "[testPutBlingOrder] Detalhe retorno Bling:",
+      JSON.stringify(error.response?.data ?? null),
+    );
+    return res.status(500).json({
+      success: false,
+      message: "Erro ao testar PUT do pedido na Bling.",
+      error: error.message,
+      detalhe_bling: error.response?.data ?? null,
+    });
   }
 };

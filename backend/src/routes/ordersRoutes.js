@@ -3,6 +3,7 @@ import {
   getOrders,
   getOrderById,
   reprocessOrder,
+  testPutBlingOrder,
 } from "../controllers/ordersController.js";
 
 const router = Router();
@@ -14,5 +15,6 @@ router.get("/", getOrders);
 router.get("/:id", getOrderById);
 
 router.post("/:id/reprocess", reprocessOrder);
+router.post("/:id/test-put-bling", testPutBlingOrder);
 
 export default router;

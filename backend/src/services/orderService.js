@@ -129,7 +129,7 @@ export const processarPedido = async (pedido) => {
         `[orderService.processarPedido] Iniciando sincronização com Bling para o pedido ${pedido._id}...`,
       );
       const { sincronizarComBling } = await import("./blingService.js");
-      await sincronizarComBling(pedidoCompleto, { gerarNotaFiscal: false });
+      await sincronizarComBling(pedidoCompleto, { gerarNotaFiscal: true });
       console.log(
         `[orderService.processarPedido] Sincronização com Bling concluída para o pedido ${pedido._id}.`,
       );
