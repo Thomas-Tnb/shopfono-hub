@@ -67,7 +67,7 @@ const OrderSchema = new mongoose.Schema(
     status_nota_fiscal: { type: String, default: null },
     ultima_emissao_nota: { type: Date, default: null },
     erro_nota_fiscal: { type: String, default: null },
-    natureza_operacao: { type: String, default: null },
+    id_natureza_operacao: { type: Number, default: null },
     correio: { type: String, default: null },
 
     // Status

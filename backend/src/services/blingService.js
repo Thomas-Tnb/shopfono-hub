@@ -2,6 +2,7 @@ import axios from "axios";
 import Order from "../models/Order.js";
 import { getAccessToken } from "../utils/blingTokenManager.js";
 import { obterSituacaoBling } from "../utils/situacoes.js";
+import { montarPayloadAtualizacaoPedidoBling } from "./blingPedidoUpdatePayloadService.js";
 
 const BLING_API = "https://api.bling.com.br";
 
@@ -44,6 +45,32 @@ const buscarCodigoRastreio = async (bling_pedido_id) => {
   const { data } = await client.get(`/Api/v3/pedidos/vendas/${bling_pedido_id}`);
 
   return data?.data?.transporte?.volumes?.[0]?.codigoRastreamento ?? null;
+};
+
+const buscarPedidoCompletoNoBling = async (bling_pedido_id) => {
+  const client = await blingRequest();
+
+  const { data } = await client.get(`/Api/v3/pedidos/vendas/${bling_pedido_id}`);
+
+  return data?.data ?? null;
+};
+
+const atualizarPedidoNoBling = async (pedidoMongo, bling_pedido_id) => {
+  const client = await blingRequest();
+  const pedidoBlingAtual = await buscarPedidoCompletoNoBling(bling_pedido_id);
+
+  if (!pedidoBlingAtual) {
+    throw new Error(`Pedido ${bling_pedido_id} nao encontrado na Bling para atualizar.`);
+  }
+
+  const payload = montarPayloadAtualizacaoPedidoBling(
+    pedidoMongo,
+    pedidoBlingAtual,
+  );
+
+  await client.put(`/Api/v3/pedidos/vendas/${bling_pedido_id}`, payload);
+
+  return payload;
 };
 
 const gerarNotaFiscalNoBling = async (bling_pedido_id) => {
@@ -100,6 +127,8 @@ export const sincronizarComBling = async (
       );
       return pedidoAtualizado;
     }
+
+    await atualizarPedidoNoBling(pedidoAtualizado, bling_pedido_id);
 
     const idNotaFiscal = await gerarNotaFiscalNoBling(bling_pedido_id);
     await vincularNotaFiscalAoPedido(pedidoAtualizado._id, idNotaFiscal);

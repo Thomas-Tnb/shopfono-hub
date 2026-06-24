@@ -1,9 +1,5 @@
-function obterNaturezaDaOperacao(estado, ie) {
-  return estado == "PR"
-    ? "Venda - PR"
-    : ie
-      ? "Interestadual C/IE"
-      : "Interestadual S/IE";
+function getIdNaturezaOperacao(estado, ie) {
+  return estado == "PR" ? 508157478 : ie ? 638602876 : 512298699;
 }
 
-export default obterNaturezaDaOperacao;
+export default getIdNaturezaOperacao;
